@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Normal permission — no runtime prompt needed -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Needed to list installed apps for the malware heuristic scan.
+         Google Play requires a declaration form justifying this use —
+         security/antivirus apps are an explicitly approved category. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <!-- For flagged-app alerts. Requested at runtime in MainActivity on
+         API 33+ — declaring it here alone isn't enough on modern Android. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:label="ShieldCheck"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.Material3.DayNight">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Receives content shared from any other app -->
+        <activity
+            android:name=".ShareReceiverActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Material3.DayNight.Dialog">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
+
+        <!-- Scans a new app the moment it's installed — this is what makes
+             malware detection automatic rather than manual-only. Package
+             install/remove broadcasts for OTHER apps are exempt from the
+             API 26+ implicit-broadcast restrictions, so this still works
+             even though the app registers it here rather than at runtime. -->
+        <receiver
+            android:name=".scan.PackageAddedReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>
